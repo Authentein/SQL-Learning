@@ -91,7 +91,7 @@ LEFT JOIN teams_spain AS t
 ON m.hometeam_id = t.team_api_id
 WHERE m.awayteam_id = 8634;
 
---------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 ### Complex CASE Statements
 
@@ -175,10 +175,112 @@ WHERE
 
 - This one gave me more trouble. Turns out the I put the wrong symbol (<) on the second WHEN clause.
 
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 ### CASE statements with aggreagate functions
 
 - Aggregate functions are COUNT, AVG, MAX, and so on.
 - You have to wrap the CASE statement with the aggregate function.
 - Just like you have have mutliple CASE statements you can wrap each those CASE statesments with aggregate functions.
+
+# DataCamp Example 1
+
+Question:
+
+```
+SELECT 
+	c.name AS country,
+    -- Count matches in 2012/2013
+	___(___ ___ m.season = '___' ___ m.id END) AS matches_2012_2013,
+    -- Count matches in 2013/2014
+	___(___ ___ m.season = '___' ___ m.id ___) ___ ___
+FROM country AS c
+LEFT JOIN match AS m
+ON c.id = m.country_id
+GROUP BY country;
+
+Answer: 
+
+```
+SELECT 
+	c.name AS country,
+    -- Count matches in 2012/2013
+	COUNT(CASE WHEN m.season = '2012/2013' THEN m.id END) AS matches_2012_2013,
+    -- Count matches in 2013/2014
+	COUNT(CASE WHEN m.season = '2013/2014' THEN m.id END) AS matches_2013_2014
+FROM country AS c
+LEFT JOIN match AS m
+ON c.id = m.country_id
+GROUP BY country;
+
+- The THEN clause gave me trouble. Logically it made no sense to me but CASE statements are logical ridig and must have the WHEN/THEN/END structure since it search eevery row.
+	- I tried AS first, this is obviously wrong because match is alread aliaszed in line 209.
+
+# DataCamp Example 2
+
+Question:
+
+```
+
+SELECT season,
+	-- SUM the home goals
+    ___(___ ___ hometeam_id = 8560 THEN ___ END) AS home_goals,
+    -- SUM the away goals
+    ___
+FROM match
+-- Group the results by season
+___
+
+
+Answer:
+
+```
+
+SELECT season,
+    SUM(CASE WHEN hometeam_id = 8560 THEN home_goal END) AS home_goals,
+    SUM(CASE WHEN awayteam_id = 8560 THEN away_goal END) AS away_goals
+FROM match AS m
+GROUP BY season;
+
+- I struggled with this one too. I need to keep in mind that each CASE statement looks at every row.
+	- Don't assume that all the info is in the syntax question, look at the data yourself.
+
+# DataCamp Example 3
+
+Quesion:
+
+```
+SELECT 
+	c.name AS country,
+    -- Calculate the fraction of tied games in each season
+	___(___ ___ m.season='2013/2014' AND m.home_goal = m.away_goal THEN 1
+			WHEN m.season='2013/2014' AND m.home_goal ___ m.away_goal THEN ___
+			END) AS ties_2013_2014,
+	___(___ ___ m.season='2014/2015' ___ ___ = ___ ___ ___
+			WHEN m.season='2014/2015' ___ m.home_goal != m.away_goal THEN ___
+			___) AS ___
+FROM country AS c
+LEFT JOIN matches AS m
+ON c.id = m.country_id
+GROUP BY country;
+
+
+Answer:
+
+```
+SELECT 
+	c.name AS country,
+    -- Calculate the fraction of tied games in each season
+	AVG(CASE WHEN m.season='2013/2014' AND m.home_goal = m.away_goal THEN 1
+			WHEN m.season='2013/2014' AND m.home_goal != m.away_goal THEN 0
+			END) AS ties_2013_2014,
+	AVG(CASE WHEN m.season='2014/2015' AND m.home_goal = m. away_goal THEN 1
+			WHEN m.season='2014/2015' AND m.home_goal != m.away_goal THEN 0
+			END) AS ties_2014_2015
+FROM country AS c
+LEFT JOIN matches AS m
+ON c.id = m.country_id
+GROUP BY country;
+
+- This made more sense to me as I actually looked at the data myslef. The syntax in the datacamp shell was messy. Looks much better here.
 
