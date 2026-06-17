@@ -1,0 +1,184 @@
+### Basic Case Statements
+
+Currently running through a sprint to learn the intermediate/advanced SQL concepts. 
+
+Expression: CASE
+Clauses: WHEN, THEN, ELSE, END
+
+# Examples
+
+```
+CASE WHEN x = 1 THEN 'a'
+     WHEN x = 2 THEN 'b'
+     ELSE 'c' END AS new_column
+
+or
+
+```
+CASE WHEN x = 1 THEN 'a'
+     WHEN x = 2 THEN 'b'
+     ELSE 'c' 
+END AS new_column
+
+# Full Syntax Example
+
+```
+SELECT
+    column_1
+    column_2
+    column_3
+CASE WHEN varible_1 > varible_2 THEN 'Output_1'
+     WHEN varible_1 < varible_2 THEN 'Output_2'
+     ELSE 'Output_3'
+END AS outcome
+FROM table
+WHERE varible_4 = 'select_fields';
+
+# DataCamp Example 1
+
+```
+SELECT 
+	CASE WHEN hometeam_id = 10189 THEN 'FC Schalke 04'
+       WHEN hometeam_id = 9823 THEN 'FC Bayern Munich'
+       ELSE 'Other' 
+END AS home_team,
+	COUNT(id) AS total_matches
+FROM matches_germany
+GROUP BY home_team;
+
+- The first example only had me replace the 'CASE WHEN' and 'THEN' clauses.
+
+# DataCamp Example 2
+
+```
+SELECT 
+	date,
+	CASE WHEN home_goal > away_goal THEN 'Home win!'
+         WHEN home_goal < away_goal THEN 'Home loss :(' 
+         ELSE'Tie' 
+END as outcome
+FROM matches_spain;
+
+- Most clauses where missing from this section, very simple. Flew through it.
+
+# DataCamp Example 3
+
+```
+-- Select matches where Barcelona was the away team
+SELECT  
+	m.date,
+	t.team_long_name AS opponent,
+	___ ___ ___ < ___ ___ 'Barcelona win!'
+        WHEN ___ > ___ ___ 'Barcelona loss :(' 
+        ___ 'Tie' ___ ___ outcome
+FROM matches_spain AS m
+LEFT JOIN teams_spain AS t 
+ON m.hometeam_id = t.team_api_id
+-- Filter for Barcelona
+WHERE m.___ = ___;
+
+
+```
+SELECT  
+	m.date,
+	t.team_long_name AS opponent,
+	CASE WHEN m.home_goal < m.away_goal THEN 'Barcelona win!'
+        WHEN m.home_goal > m.away_goal THEN 'Barcelona loss :(' 
+        ELSE 'Tie' 
+END AS outcome
+FROM matches_spain AS m
+LEFT JOIN teams_spain AS t 
+ON m.hometeam_id = t.team_api_id
+WHERE m.awayteam_id = 8634;
+
+--------------------------------------------------------------------------------
+
+### Complex CASE Statements
+
+- The complexitiy they are refering to here is adding 'AND' clauses within CASE expressions. 
+  - The AND clause allows for two logical tests within one expression
+- For these complex and basic CASE statements there must be a WHERE clause.
+  - In the WHERE clause an 'OR' clause can be added as well to allow for two conditionsto be true in the CASE expression.
+  - Without the WHERE clause and ELSE clause will categorize all instances as false.
+- Can combine the ELSE clause with the 'NULL' and 'IS NOT NULL' clauses.
+  - The WHERE clause can be turned into a CASE expression to control for nulls.
+- Can make multiple CASE statement within the same function.
+
+# DataCamp Example 1
+
+Question:
+
+```
+SELECT 
+	date,
+	CASE WHEN hometeam_id = 8634 THEN 'FC Barcelona' 
+         ELSE 'Real Madrid CF' END as home,
+	CASE WHEN awayteam_id = 8634 THEN 'FC Barcelona' 
+         ELSE 'Real Madrid CF' END as away,
+	-- Identify possible home match outcomes
+	___ ___ home_goal > away_goal ___ hometeam_id = 8634 ___ 'Barcelona win!'
+        WHEN home_goal < away_goal ___ awayteam_id = 8633 ___ 'Real Madrid win!'
+        ___ 'Tie!' ___ ___ outcome
+FROM matches_spain
+WHERE hometeam_id = 8634 AND awayteam_id = 8633;
+
+Solution:
+
+```
+SELECT 
+	date,
+	CASE WHEN hometeam_id = 8634 THEN 'FC Barcelona' 
+         ELSE 'Real Madrid CF' END as home,
+	CASE WHEN awayteam_id = 8634 THEN 'FC Barcelona' 
+         ELSE 'Real Madrid CF' END as away,
+	-- Identify possible home match outcomes
+	CASE WHEN home_goal > away_goal AND hometeam_id = 8634 THEN 'Barcelona win!'
+        WHEN home_goal < away_goal AND awayteam_id = 8633 THEN 'Real Madrid win!'
+        ELSE 'Tie!' 
+END AS outcome
+FROM matches_spain
+WHERE hometeam_id = 8634 AND awayteam_id = 8633;
+
+- Got some experience with AND statements here. The flow is making sense.
+
+# DataCamp Example 2
+
+Question:
+
+```
+SELECT 
+	season,
+    date,
+	home_goal,
+	away_goal
+FROM matches_italy
+WHERE 
+	-- Find games where home_goal is more than away_goal
+	___ ___ hometeam_id = 9857 ___ home_goal ___ away_goal ___ 'Bologna Win'
+		-- Find games where away_goal is more than home_goal
+        ___ awayteam_id = 9857 ___ away_goal ___ home_goal ___ 'Bologna Win' 
+        -- Exclude games not won by Bologna
+		___ IS NOT ___;
+
+Answer:
+
+SELECT 
+	season,
+	date,
+	home_goal,
+	away_goal
+FROM matches_italy
+WHERE
+	CASE WHEN hometeam_id = 9857 AND home_goal > away_goal THEN 'Bologna Win'
+        WHEN awayteam_id = 9857 AND away_goal > home_goal THEN 'Bologna Win'
+        END IS NOT NULL;
+
+- This one gave me more trouble. Turns out the I put the wrong symbol (<) on the second WHEN clause.
+
+
+### CASE statements with aggreagate functions
+
+- Aggregate functions are COUNT, AVG, MAX, and so on.
+- You have to wrap the CASE statement with the aggregate function.
+- Just like you have have mutliple CASE statements you can wrap each those CASE statesments with aggregate functions.
+
