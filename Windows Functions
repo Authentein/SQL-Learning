@@ -1,0 +1,103 @@
+### Numbering Rows
+
+## DataCamp Example 1
+
+# Question: Number each row in the dataset.
+```
+SELECT
+  *,
+  -- Assign numbers to each row
+  ___ ___ AS Row_N
+FROM Summer_Medals
+ORDER BY Row_N ASC;
+```
+
+# Attempt 1:
+```
+SELECT
+  *,
+  -- Assign numbers to each row
+  ROW_NUMBER() OVER() AS Row_N
+FROM Summer_Medals
+ORDER BY Row_N ASC;
+```
+# Answer:
+```
+SELECT
+  *,
+  ROW_NUMBER() OVER() AS Row_N
+FROM Summer_Medals
+ORDER BY Row_N ASC;
+```
+- The OVER() clause is what makes this a Windows function.
+
+## DataCamp Example 2
+
+# Question:
+```
+SELECT
+  Year,
+
+  -- Assign numbers to each year
+  ___ ___ AS Row_N
+FROM (
+  SELECT ___ ___
+  FROM Summer_Medals
+  ORDER BY Year ASC
+) AS Years
+ORDER BY Year ASC;
+```
+
+# Attempt 1:
+```
+SELECT
+  Year,
+
+  -- Assign numbers to each year
+  ROW_NUMBER() OVER() AS Row_N
+FROM (
+  SELECT Year, sport
+  FROM Summer_Medals
+  ORDER BY Year ASC
+) AS Years
+ORDER BY Year ASC;
+```
+
+# Attempt 2:
+```
+SELECT
+  Year,
+
+  -- Assign numbers to each year
+  ROW_NUMBER() OVER() AS Row_N
+FROM (
+  SELECT DISTINCT Year
+  FROM Summer_Medals
+  ORDER BY Year ASC
+) AS Years
+ORDER BY Year ASC;
+```
+
+# Answer:
+```
+SELECT
+  Year,
+  ROW_NUMBER() OVER() AS Row_N
+FROM (
+  SELECT DISTINCT Year
+  FROM Summer_Medals
+  ORDER BY Year ASC
+) AS Years
+ORDER BY Year ASC;
+```
+
+- The "each year" = DISTINCT
+
+-------------------------------------------------------------------------------------------------------------------------------------
+
+### ORDER BY
+
+- Important Note: ORDER BY inside OVER takes effect before ORDER BY outside OVER
+- LAG(column, n) OVER() returns a coumns's value at the row "n" rows before the current row.
+    - LAG(column, 1) OVER() returns the previous row's value
+    

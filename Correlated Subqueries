@@ -1,0 +1,123 @@
+### Correlated Subqueries with multiple conditions
+
+## Important Notes:
+
+- The Main Query is called the Outer Loop
+    - The Subquery is called the Inner Loop
+    - These are called loops because for every row the query 'loops' through the main and subquery checking if that row meets the criteria spelled out by the clauses.
+    - The WHERE clause acts as a gatekeeper that determines if a row stays or goes based on the query logic.
+
+## DataCamp Example 1
+
+# Question:
+```
+SELECT 
+	main.country_id,
+    main.date,
+    main.home_goal,
+    main.away_goal
+FROM match AS main
+WHERE 
+	-- Filter the main query by the subquery
+	(home_goal + away_goal) > 
+        (SELECT AVG((___ + sub.away_goal) * 3)
+         FROM match AS sub
+         -- Join the main query to the subquery with country_id in WHERE
+         WHERE main.___ = sub.___);
+```
+
+# Attempt 1
+```
+SELECT 
+	main.country_id,
+    main.date,
+    main.home_goal,
+    main.away_goal
+FROM match AS main
+WHERE 
+	-- Filter the main query by the subquery
+	(home_goal + away_goal) > 
+        (SELECT AVG((sub.home_goal + sub.away_goal) * 3)
+         FROM match AS sub
+         -- Join the main query to the subquery with country_id in WHERE
+         WHERE main.country_id = sub.country_id);
+```
+
+# Answer 
+```
+SELECT 
+	main.country_id,
+    main.date,
+    main.home_goal,
+    main.away_goal
+FROM match AS main
+WHERE 
+	-- Filter the main query by the subquery
+	(home_goal + away_goal) > 
+        (SELECT AVG((sub.home_goal + sub.away_goal) * 3)
+         FROM match AS sub
+         -- Join the main query to the subquery with country_id in WHERE
+         WHERE main.country_id = sub.country_id);
+```
+
+## DataCamp Example 2: Correlated subquery with multiple conditions
+
+# Instructions:
+
+Complete the subquery to select the matches with the highest number of total goals.
+
+Match the subquery to the main query using the country_id and season columns in both tables.
+
+# Question:
+```
+SELECT 
+	main.country_id,
+    main.date,
+    main.home_goal,
+    main.away_goal
+FROM match AS main
+WHERE 
+	-- Filter for matches with the maximum number of total goals scored
+	(home_goal + away_goal) = 
+        (SELECT MAX(sub.home_goal + sub.away_goal)
+         FROM match AS sub
+         -- Join the main query to the subquery in WHERE
+         WHERE ___ = sub.___
+               AND ___ = sub.___);
+```
+
+# Attempt 1:
+```
+SELECT 
+	main.country_id,
+    main.date,
+    main.home_goal,
+    main.away_goal
+FROM match AS main
+WHERE 
+	-- Filter for matches with the maximum number of total goals scored
+	(home_goal + away_goal) = 
+        (SELECT MAX(sub.home_goal + sub.away_goal)
+         FROM match AS sub
+         -- Join the main query to the subquery in WHERE
+         WHERE main.country_id = sub.country_id
+               AND main.season = sub.season);
+```
+
+# Answer:
+```
+SELECT 
+	main.country_id,
+    main.date,
+    main.home_goal,
+    main.away_goal
+FROM match AS main
+WHERE 
+	(home_goal + away_goal) = 
+        (SELECT MAX(sub.home_goal + sub.away_goal)
+         FROM match AS sub
+         WHERE main.country_id = sub.country_id
+               AND main.season = sub.season);
+```
+
+-- 

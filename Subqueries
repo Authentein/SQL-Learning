@@ -1,0 +1,532 @@
+### Subqueries in Select
+
+- Useful for selecting a single value
+    - Include aggregate values to compare to idividual values
+
+
+## DataCamp Example 1
+
+# Question
+```
+SELECT 
+	l.name AS league,
+    -- Round the average of the league's total goals
+    ROUND(___(___ + m.away_goal), 2) AS avg_goals,
+    -- Select and round the average total goals for the season
+    (SELECT ___(___(___ + away_goal), 2) 
+     FROM match
+     ___ ___ = ___) AS overall_avg
+FROM league AS l
+LEFT JOIN match AS m
+ON l.country_id = m.country_id
+-- Filter for the 2013/2014 season
+WHERE ___ = ___
+GROUP BY ___;
+```
+
+# Attempt 1
+```
+SELECT 
+	l.name AS league,
+    -- Round the average of the league's total goals
+    ROUND(match(m.home_goal + m.away_goal), 2) AS avg_goals,
+    -- Select and round the average total goals for the season
+    (SELECT ROUND(match(home_goal + away_goal), 2) 
+     FROM match
+     ___ ___ = ___) AS overall_avg
+FROM league AS l
+LEFT JOIN match AS m
+ON l.country_id = m.country_id
+-- Filter for the 2013/2014 season
+WHERE season = '2013/2014'
+GROUP BY season;
+```
+
+# Attempt 2
+```
+SELECT 
+	l.name AS league,
+    -- Round the average of the league's total goals
+    ROUND(match(m.home_goal + m.away_goal), 2) AS avg_goals,
+    -- Select and round the average total goals for the season
+    (SELECT ROUND(match(home_goal + away_goal), 2) 
+     FROM match
+     WHERE season = 2013/2014) AS overall_avg
+FROM league AS l
+LEFT JOIN match AS m
+ON l.country_id = m.country_id
+-- Filter for the 2013/2014 season
+WHERE season = '2013/2014'
+GROUP BY season;
+```
+
+# Attempt 3
+```
+SELECT 
+	l.name AS league,
+    -- Round the average of the league's total goals
+    ROUND(AVG(m.home_goal + m.away_goal), 2) AS avg_goals,
+    -- Select and round the average total goals for the season
+    (SELECT ROUND(AVG(home_goal + away_goal), 2) 
+     FROM match
+     WHERE season = 2013/2014) AS overall_avg
+FROM league AS l
+LEFT JOIN match AS m
+ON l.country_id = m.country_id
+-- Filter for the 2013/2014 season
+WHERE season = '2013/2014'
+GROUP BY season;
+```
+
+# Attempt 4
+```
+SELECT 
+	l.name AS league,
+    -- Round the average of the league's total goals
+    ROUND(AVG(m.home_goal + m.away_goal), 2) AS avg_goals,
+    -- Select and round the average total goals for the season
+    (SELECT ROUND(AVG(home_goal + away_goal), 2) 
+     FROM match
+     WHERE season = '2013/2014') AS overall_avg
+FROM league AS l
+LEFT JOIN match AS m
+ON l.country_id = m.country_id
+-- Filter for the 2013/2014 season
+WHERE season = '2013/2014'
+GROUP BY season;
+```
+
+# Attempt 5
+```
+SELECT 
+	l.name AS league,
+    -- Round the average of the league's total goals
+    ROUND(AVG(m.home_goal + m.away_goal), 2) AS avg_goals,
+    -- Select and round the average total goals for the season
+    (SELECT ROUND(AVG(home_goal + away_goal), 2) 
+     FROM match
+     WHERE season = '2013/2014') AS overall_avg
+FROM league AS l
+LEFT JOIN match AS m
+ON l.country_id = m.country_id
+-- Filter for the 2013/2014 season
+WHERE season = '2013/2014'
+GROUP BY l.name;
+```
+
+# Answer
+```
+SELECT 
+	l.name AS league,
+    -- Round the average of the league's total goals
+    ROUND(AVG(m.home_goal + m.away_goal), 2) AS avg_goals,
+    -- Select and round the average total goals for the season
+    (SELECT ROUND(AVG(home_goal + away_goal), 2) 
+     FROM match
+     WHERE season = '2013/2014') AS overall_avg
+FROM league AS l
+LEFT JOIN match AS m
+ON l.country_id = m.country_id
+-- Filter for the 2013/2014 season
+WHERE season = '2013/2014'
+GROUP BY l.name;
+```
+
+- Couple of things messed me up here:
+    1.) I totally forgot that ROUND(AVG()) is a valid syntax despite the instructions clearly calling for that.
+    2.) The WHERE expression in the subquery tripped me up. I didn't realize that the WHERE expression needed to be the same for the main query and the subquery.
+    3.) I intially grouped by season because that I how I would naturally do it. But the directions called to group by l.name.
+
+## DataCamp Example 2: Subqueries in Select for Calculations
+
+# Questions:
+```
+SELECT
+	-- Select the league name and average goals scored
+	___ AS league,
+	ROUND(___(___ + m.away_goal),2) AS avg_goals,
+    -- Subtract the overall average from the league average
+	ROUND(AVG(___ + m.away_goal) ___ 
+		(SELECT ___(___ + away_goal)
+		 FROM match 
+         WHERE ___ = ___),2) AS diff
+FROM league AS l
+LEFT JOIN match AS m
+ON l.country_id = m.country_id
+-- Only include 2013/2014 results
+WHERE ___ = ___
+GROUP BY l.name;
+```
+
+# Attempt 1:
+```
+SELECT
+	-- Select the league name and average goals scored
+	name AS league,
+	ROUND(AVG(m.home_goal + m.away_goal),2) AS avg_goals,
+    -- Subtract the overall average from the league average
+	ROUND(AVG(m.home_goal + m.away_goal) AS league_avg 
+		(SELECT AVG(home_goal + away_goal)
+		 FROM match 
+         WHERE season = 2013/2014),2) AS diff
+FROM league AS l
+LEFT JOIN match AS m
+ON l.country_id = m.country_id
+-- Only include 2013/2014 results
+WHERE season = 2013/2014
+GROUP BY l.name;
+```
+
+# Attempt 2:
+```
+SELECT
+	-- Select the league name and average goals scored
+	name AS league,
+	ROUND(AVG(m.home_goal + m.away_goal),2) AS avg_goals,
+    -- Subtract the overall average from the league average
+	ROUND(AVG(m.home_goal + m.away_goal) AS -
+		(SELECT AVG(home_goal + away_goal)
+		 FROM match 
+         WHERE season = '2013/2014'),2) AS diff
+FROM league AS l
+LEFT JOIN match AS m
+ON l.country_id = m.country_id
+-- Only include 2013/2014 results
+WHERE season = 2013/2014
+GROUP BY l.name;
+```
+
+# Attempt 3:
+```
+SELECT
+	-- Select the league name and average goals scored
+	name AS league,
+	ROUND(AVG(m.home_goal + m.away_goal),2) AS avg_goals,
+    -- Subtract the overall average from the league average
+	ROUND(AVG(m.home_goal + m.away_goal) -
+		(SELECT AVG(home_goal + away_goal)
+		 FROM match 
+         WHERE season = '2013/2014'),2) AS diff
+FROM league AS l
+LEFT JOIN match AS m
+ON l.country_id = m.country_id
+-- Only include 2013/2014 results
+WHERE season = 2013
+```
+
+# Attempt 4:
+```
+SELECT
+	-- Select the league name and average goals scored
+	name AS league,
+	ROUND(AVG(m.home_goal + m.away_goal),2) AS avg_goals,
+    -- Subtract the overall average from the league average
+	ROUND(AVG(m.home_goal + m.away_goal) -
+		(SELECT AVG(home_goal + away_goal)
+		 FROM match 
+         WHERE season = '2013/2014'),2) AS diff
+FROM league AS l
+LEFT JOIN match AS m
+ON l.country_id = m.country_id
+-- Only include 2013/2014 results
+WHERE season = '2013/2014'
+GROUP BY l.name;
+```
+
+# Answer:
+```
+SELECT
+	name AS league,
+	ROUND(AVG(m.home_goal + m.away_goal),2) AS avg_goals,
+	ROUND(AVG(m.home_goal + m.away_goal) -
+		(SELECT AVG(home_goal + away_goal)
+		 FROM match 
+         WHERE season = '2013/2014'),2) AS diff
+FROM league AS l
+LEFT JOIN match AS m
+ON l.country_id = m.country_id
+WHERE season = '2013/2014'
+GROUP BY l.name;
+```
+
+- Kept missing the '' for the 2013/2014 season WHERE clause
+- I didn't know that I could use a mathmetical symbol (-) after the second ROUND(AVG()) for the subquery.
+
+-----------------------------------------------------------------------------------------------
+
+### Subqueries Cont.
+
+- Can include subqueries wherever I want within in the SELECT, FROM, WHERE clauses
+    -  Queries can become long an complicated. Make sure to properly format them.
+    -  Annotate and properly indent them when possible.
+- Subqueries can be cumbersome on computing power, look for other more efficent ways to pull data before relying on this.
+- Watch any filters that I have. Need to be in evey query.
+
+
+## DataCamp Example 1: All the subqueries everywhere
+
+# Question:
+
+Instructions:
+
+Extract the average number of total goals in a SELECT subquery.
+
+Calculate the average total goals for the specific stage in the main query.
+
+Filter both subqueries and the main query so that only data from the 2012/2013 season is 
+included.
+
+GROUP the query by the m.stage column.
+
+```
+SELECT 
+	-- Select the stage and average goals for each stage
+	m.stage,
+    ROUND(___(___ + m.away_goal),2) AS avg_goals,
+    -- Select the average overall goals for the 2012/2013 season
+    ROUND((SELECT ___(___ + away_goal) 
+           FROM match 
+           WHERE season = ___),2) AS overall
+FROM match AS m
+-- Filter for the 2012/2013 season
+WHERE ___ = ___
+-- Group by stage
+GROUP BY ___;
+```
+
+# Attempt 1:
+```
+SELECT 
+	-- Select the stage and average goals for each stage
+	m.stage,
+    ROUND(AVG(m.home_goals + m.away_goal),2) AS avg_goals,
+    -- Select the average overall goals for the 2012/2013 season
+    ROUND((SELECT AVG(home_goals + away_goal) 
+           FROM match 
+           WHERE season = '2012/2013'),2) AS overall
+FROM match AS m
+-- Filter for the 2012/2013 season
+WHERE season = '2012/2013'
+-- Group by stage
+GROUP BY m.stage;
+```
+
+--- AVG(home_goals + away_goal) This is meant to be home_goal
+
+# Attempt 2:
+```
+SELECT 
+	-- Select the stage and average goals for each stage
+	m.stage,
+    ROUND(AVG(m.home_goals + m.away_goal),2) AS avg_goals,
+    -- Select the average overall goals for the 2012/2013 season
+    ROUND((SELECT AVG(home_goal + away_goal) 
+           FROM match 
+           WHERE season = '2012/2013'),2) AS overall
+FROM match AS m
+-- Filter for the 2012/2013 season
+WHERE season = '2012/2013'
+-- Group by stage
+GROUP BY m.stage;
+```
+
+--- Forgot to switch the home_goals to home_goal in ROUND(AVG(m.home_goals + m.away_goal)
+
+# Answer:
+```
+SELECT 
+	m.stage,
+    ROUND(AVG(m.home_goals + m.away_goal),2) AS avg_goals,
+    ROUND((SELECT AVG(home_goal + away_goal) 
+           FROM match 
+           WHERE season = '2012/2013'),2) AS overall
+FROM match AS m
+WHERE season = '2012/2013'
+GROUP BY m.stage;
+```
+
+- Simple mistakes are keeping me from a perfect score. 
+    - Slow down, look at the column names. Double check punc and spelling
+
+## DataCamp Example 2: Add a subquery in FROM
+
+# Instructions: 
+
+Calculate the average total goals from the match table for each stage in the FROM clause subquery.
+
+Add a subquery to the WHERE clause that calculates the overall average total goals.
+
+Filter the main query for stages where the average total goals is higher than the overall average.
+
+Select the stage and avg_goals columns from the s subquery into the main query.
+
+
+# Question:
+```
+SELECT 
+	-- Select the stage and average goals from the subquery
+	___,
+	ROUND(___,2) AS avg_goals
+FROM 
+	-- Select the stage and average goals in 2012/2013
+	(SELECT
+		 ___,
+         ___(___ + away_goal) AS avg_goals
+	 FROM ___
+	 WHERE season = ___
+	 GROUP BY stage) AS s
+WHERE 
+	-- Filter the main query using the subquery
+	s.avg_goals __ (SELECT ___(___ + away_goal) 
+                    FROM match WHERE season = ___);
+```
+
+# Attempt 1:
+```
+SELECT 
+	-- Select the stage and average goals from the subquery
+	stage,
+	ROUND(home_goal + away_goal,2) AS avg_goals
+FROM 
+	-- Select the stage and average goals in 2012/2013
+	(SELECT
+		 stage,
+         AVG(home_goal + away_goal) AS avg_goals
+	 FROM match
+	 WHERE season = '2012/2013'
+	 GROUP BY stage) AS s
+WHERE 
+	-- Filter the main query using the subquery
+	s.avg_goals > (SELECT AVG(home_goal + away_goal) 
+                    FROM match WHERE season = '2012/2013');
+```
+
+# Attempt 2:
+```
+SELECT 
+	-- Select the stage and average goals from the subquery
+	stage,
+	AVG(home_goal + away_goal,2) AS avg_goals
+FROM 
+	-- Select the stage and average goals in 2012/2013
+	(SELECT
+		 stage,
+         AVG(home_goal + away_goal) AS avg_goals
+	 FROM match
+	 WHERE season = '2012/2013'
+	 GROUP BY stage) AS s
+WHERE 
+	-- Filter the main query using the subquery
+	s.avg_goals > (SELECT AVG(home_goal + away_goal) 
+                    FROM match WHERE season = '2012/2013');
+```
+
+# Attempt 3:
+```
+SELECT 
+	-- Select the stage and average goals from the subquery
+	stage,
+	ROUND(s.avg_goals,2) AS avg_goals
+FROM 
+	-- Select the stage and average goals in 2012/2013
+	(SELECT
+		 stage,
+         AVG(home_goal + away_goal) AS avg_goals
+	 FROM match
+	 WHERE season = '2012/2013'
+	 GROUP BY stage) AS s
+WHERE 
+	-- Filter the main query using the subquery
+	s.avg_goals > (SELECT AVG(home_goal + away_goal) 
+                    FROM match WHERE season = '2012/2013');
+```
+
+# Answer:
+```
+SELECT 
+	stage,
+	ROUND(s.avg_goals,2) AS avg_goals
+FROM 
+	(SELECT
+		 stage,
+         AVG(home_goal + away_goal) AS avg_goals
+	 FROM match
+	 WHERE season = '2012/2013'
+	 GROUP BY stage) AS s
+WHERE 
+	s.avg_goals > (SELECT AVG(home_goal + away_goal) 
+                    FROM match WHERE season = '2012/2013');
+```
+
+## DataCamp Example 3: Add a subquery in SELECT
+
+# Instructions: 
+
+Create a subquery in SELECT that yields the average total goals scored in the 2012/2013 season and stores it in a column named overall_avg
+
+Create a subquery in FROM that calculates the average total goals scored in each stage during the 2012/2013 season.
+
+Filter the main query for stages where the average total goals exceeds the overall average in 2012/2013.
+
+# Question: 
+```
+SELECT 
+	-- Select the stage and average goals from s
+	___,
+    ROUND(___,2) AS avg_goal,
+    -- Select the overall average for 2012/2013
+    (___ ___(___ + away_goal) FROM ___ WHERE ___ = ___) AS overall_avg
+FROM 
+	-- Select the stage and average goals in 2012/2013 from match
+	(SELECT
+		 ___,
+         ___(___ + away_goal) AS avg_goals
+	 FROM ___
+	 WHERE season = ___
+	 GROUP BY stage) AS s
+WHERE 
+	-- Filter the main query using the subquery
+	s.avg_goals ___ (SELECT ___(___ + away_goal) 
+                    FROM match WHERE season = ___);
+```
+
+# Attempt 1:
+```
+SELECT 
+	-- Select the stage and average goals from s
+	stage,
+    ROUND(s.avg_goals,2) AS avg_goal,
+    -- Select the overall average for 2012/2013
+    (SELECT AVG(home_goal + away_goal) FROM match WHERE season = '2012/2013') AS overall_avg
+FROM 
+	-- Select the stage and average goals in 2012/2013 from match
+	(SELECT
+		 stage,
+         AVG(home_goal + away_goal) AS avg_goals
+	 FROM match
+	 WHERE season = '2012/2013'
+	 GROUP BY stage) AS s
+WHERE 
+	-- Filter the main query using the subquery
+	s.avg_goals > (SELECT AVG(home_goal + away_goal) 
+                    FROM match WHERE season = '2012/2013');
+```
+
+# Answer: 
+```
+SELECT 
+	stage,
+    ROUND(s.avg_goals,2) AS avg_goal,
+    (SELECT AVG(home_goal + away_goal) FROM match WHERE season = '2012/2013') AS overall_avg
+FROM 
+	(SELECT
+		 stage,
+         AVG(home_goal + away_goal) AS avg_goals
+	 FROM match
+	 WHERE season = '2012/2013'
+	 GROUP BY stage) AS s
+WHERE 
+	s.avg_goals > (SELECT AVG(home_goal + away_goal) 
+                    FROM match WHERE season = '2012/2013');
+```
+
